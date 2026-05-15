@@ -365,11 +365,8 @@ with c2:
 
 if submit:
     if not name.strip():
-        st.markdown("""
-        <div style='background:#FFFDE0; border:2px inset #888800; padding:14px; margin:10px 0; font-size:13px;'>
-            ERROR: Patient name is required. The doctor cannot diagnose a ghost. (Or can he. He would rather not.)
-        </div>
-        """, unsafe_allow_html=True)
+        st.session_state.result = None
+        st.session_state.error  = True
     else:
         score, tier = compute_battery(
             had_party, had_wedding, had_family, had_work_calls,
@@ -377,104 +374,155 @@ if submit:
             had_phonecall, had_alone_time, people_count,
             awkward_moments, worst_event, recharge
         )
-
         bar_color, bar_pct   = BAR_FILLS[tier]
         bg_color, border_col = RESULT_COLORS[tier]
-        diagnosis            = random.choice(DIAGNOSES[tier])
-        doctor_note          = random.choice(DOCTOR_NOTES[tier])
-        warning              = WARNING_LABELS[tier]
         rx1, rx1_note        = random.choice(PRESCRIPTIONS)
         rx2, rx2_note        = random.choice([p for p in PRESCRIPTIONS if p[0] != rx1])
-        ref_num              = random.randint(10000, 99999)
-        bar_blocks           = "█" * (bar_pct // 8)
+        st.session_state.error  = False
+        st.session_state.result = {
+            "name":        name.strip(),
+            "score":       score,
+            "tier":        tier,
+            "bar_color":   bar_color,
+            "bar_pct":     bar_pct,
+            "bg_color":    bg_color,
+            "border_col":  border_col,
+            "diagnosis":   random.choice(DIAGNOSES[tier]),
+            "doctor_note": random.choice(DOCTOR_NOTES[tier]),
+            "warning":     WARNING_LABELS[tier],
+            "rx1":         rx1,
+            "rx1_note":    rx1_note,
+            "rx2":         rx2,
+            "rx2_note":    rx2_note,
+            "ref_num":     random.randint(10000, 99999),
+            "bar_blocks":  "█" * (bar_pct // 8),
+        }
 
-        # ── Results header ────────────────────────────────────────────────────
-        st.markdown(f"""
-        <br>
-        <div style='background:#000080; color:white; padding:3px 8px; font-size:13px;
-                    font-weight:700; letter-spacing:1px; margin-bottom:8px;'>
-            DIAGNOSTIC RESULTS — PATIENT: {name.upper()}
-        </div>
-        """, unsafe_allow_html=True)
+# ── Render error ──────────────────────────────────────────────────────────────
+if st.session_state.get("error"):
+    st.markdown("""
+    <div style='background:#FFFDE0; border:2px inset #888800; padding:14px; margin:10px 0; font-size:13px;'>
+        ERROR: Patient name is required. The doctor cannot diagnose a ghost. (Or can he. He would rather not.)
+    </div>
+    """, unsafe_allow_html=True)
 
-        # ── Diagnosis card ────────────────────────────────────────────────────
-        st.markdown(f"""
-        <div style='background:{bg_color}; border:2px inset {border_col};
-                    padding:16px; margin:0 0 10px; font-size:13px;'>
-            <div style='font-size:11px; color:#555; margin-bottom:6px;'>
-                SOCIAL BATTERY DIAGNOSTIC CENTER &nbsp;|&nbsp; REF: SBL-{ref_num}
-            </div>
-            <div style='font-size:17px; font-weight:700; margin-bottom:6px;'>
-                DIAGNOSIS: {diagnosis}
-            </div>
-            <div style='font-size:12px; margin-bottom:12px; color:#333;'>
-                STATUS: <strong>{warning}</strong>
-            </div>
-            <div style='font-size:12px; margin-bottom:4px;'>
-                SOCIAL BATTERY LEVEL (SBL): <strong>{score}%</strong>
-            </div>
-            <div style='background:#888; border:2px inset #555; height:28px; width:100%; margin:6px 0 12px;'>
-                <div style='background:{bar_color}; width:{bar_pct}%; height:100%;
-                            display:flex; align-items:center; padding-left:6px;
-                            color:white; font-size:11px; font-weight:700;'>
-                    {bar_blocks} {score}%
-                </div>
-            </div>
-            <hr style='border:none; border-top:1px solid #888; margin:10px 0;'>
-            <div style='font-size:12px;'>
-                <strong>DOCTOR'S CLINICAL NOTE:</strong><br>{doctor_note}
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+# ── Render results ────────────────────────────────────────────────────────────
+r = st.session_state.get("result")
+if r:
+    # Section header — native st.write to avoid f-string HTML issues
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='background:#000080; color:white; padding:3px 8px; font-size:13px; "
+        f"font-weight:700; letter-spacing:1px; margin-bottom:8px;'>"
+        f"DIAGNOSTIC RESULTS — PATIENT: {r['name'].upper()}</div>",
+        unsafe_allow_html=True
+    )
 
-        # ── Prescription ──────────────────────────────────────────────────────
-        st.markdown(f"""
-        <div style='background:#FFFFF0; border:2px solid #000; padding:16px; margin:0 0 10px;'>
-            <div style='font-size:18px; font-weight:700; border-bottom:1px solid #000;
-                        padding-bottom:6px; margin-bottom:12px;'>
-                Rx &nbsp; OFFICIAL PRESCRIPTION
-            </div>
-            <div style='font-size:12px; line-height:1.9;'>
-                <strong>Patient:</strong> {name.title()} &nbsp;&nbsp;
-                <strong>Date:</strong> Today (The doctor does not know what day it is)
-                <br><br>
-                <strong>Rx 1:</strong> {rx1}<br>
-                <span style='font-size:11px; color:#555;'>Instructions: {rx1_note}</span>
-                <br><br>
-                <strong>Rx 2:</strong> {rx2}<br>
-                <span style='font-size:11px; color:#555;'>Instructions: {rx2_note}</span>
-                <br><br>
-                <strong>Refills:</strong> Unlimited. Take as needed. Take more than needed.<br>
-                <strong>Warnings:</strong> Do not operate social obligations while on this prescription.
-            </div>
-            <div style='text-align:right; margin-top:12px;'>
-                <span style='display:inline-block; border:3px solid #CC0000; color:#CC0000;
-                             font-size:15px; font-weight:700; padding:3px 12px;
-                             transform:rotate(-6deg); letter-spacing:2px;'>
-                    DR. APPROVED
-                </span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    # Diagnosis card — use st columns + native text so Streamlit can't sanitise it away
+    st.markdown(
+        f"<div style='background:{r['bg_color']}; border:2px solid {r['border_col']}; "
+        f"padding:16px; margin:0 0 4px; font-size:13px;'>"
+        f"<span style='font-size:11px; color:#555;'>SOCIAL BATTERY DIAGNOSTIC CENTER &nbsp;|&nbsp; "
+        f"REF: SBL-{r['ref_num']}</span></div>",
+        unsafe_allow_html=True
+    )
 
-        # ── Disclaimer ────────────────────────────────────────────────────────
-        st.markdown("""
-        <div style='background:#FFFFF0; border:2px inset #888; padding:14px 16px;
-                    margin:0 0 10px; font-size:11px; color:#555;'>
-            <strong>DISCLAIMER:</strong> This diagnosis is certified by the International Board of
-            People Who Just Need a Minute. Results valid for 7 days or until someone invites you
-            to something, whichever comes first. The doctor is not responsible for any plans you
-            cancel as a result of this report. That was going to happen anyway.
-            <br><br>
-            <div style='text-align:center; font-size:12px; color:#333;'>
-                RATE THIS DIAGNOSIS:
-                &nbsp;[Excellent]&nbsp;
-                &nbsp;[Very Good]&nbsp;
-                &nbsp;[Good]&nbsp;
-                &nbsp;[Why Did I Come Here]
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='background:{r['bg_color']}; border-left:2px solid {r['border_col']}; "
+        f"border-right:2px solid {r['border_col']}; padding:4px 16px; font-size:17px; font-weight:700;'>"
+        f"DIAGNOSIS: {r['diagnosis']}</div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"<div style='background:{r['bg_color']}; border-left:2px solid {r['border_col']}; "
+        f"border-right:2px solid {r['border_col']}; padding:4px 16px; font-size:12px;'>"
+        f"STATUS: <strong>{r['warning']}</strong></div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"<div style='background:{r['bg_color']}; border-left:2px solid {r['border_col']}; "
+        f"border-right:2px solid {r['border_col']}; padding:8px 16px; font-size:12px;'>"
+        f"SOCIAL BATTERY LEVEL (SBL): <strong>{r['score']}%</strong><br>"
+        f"<div style='background:#888; height:26px; margin-top:6px;'>"
+        f"<div style='background:{r['bar_color']}; width:{r['bar_pct']}%; height:100%; "
+        f"padding-left:6px; display:flex; align-items:center; color:white; font-size:11px; font-weight:700;'>"
+        f"{r['bar_blocks']} {r['score']}%</div></div></div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"<div style='background:{r['bg_color']}; border:2px solid {r['border_col']}; "
+        f"border-top:none; padding:10px 16px 14px; font-size:12px; margin-bottom:10px;'>"
+        f"<strong>DOCTOR'S CLINICAL NOTE:</strong><br>{r['doctor_note']}</div>",
+        unsafe_allow_html=True
+    )
+
+    # Prescription — plain st.markdown rows, no nesting
+    st.markdown(
+        "<div style='background:#FFFFF0; border:2px solid #000000; "
+        "padding:14px 16px 6px; margin-bottom:0;'>"
+        "<span style='font-size:17px; font-weight:700;'>Rx &nbsp; OFFICIAL PRESCRIPTION</span><hr "
+        "style='border:none; border-top:1px solid #000; margin:8px 0 12px;'></div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"<div style='background:#FFFFF0; border-left:2px solid #000; border-right:2px solid #000; "
+        f"padding:4px 16px; font-size:12px;'>"
+        f"<strong>Patient:</strong> {r['name'].title()} &nbsp;&nbsp; "
+        f"<strong>Date:</strong> Today (The doctor does not know what day it is)</div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"<div style='background:#FFFFF0; border-left:2px solid #000; border-right:2px solid #000; "
+        f"padding:8px 16px; font-size:12px;'>"
+        f"<strong>Rx 1:</strong> {r['rx1']}<br>"
+        f"<span style='font-size:11px; color:#555;'>Instructions: {r['rx1_note']}</span></div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        f"<div style='background:#FFFFF0; border-left:2px solid #000; border-right:2px solid #000; "
+        f"padding:8px 16px; font-size:12px;'>"
+        f"<strong>Rx 2:</strong> {r['rx2']}<br>"
+        f"<span style='font-size:11px; color:#555;'>Instructions: {r['rx2_note']}</span></div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        "<div style='background:#FFFFF0; border-left:2px solid #000; border-right:2px solid #000; "
+        "padding:8px 16px; font-size:12px;'>"
+        "<strong>Refills:</strong> Unlimited. Take as needed. Take more than needed.<br>"
+        "<strong>Warnings:</strong> Do not operate social obligations while on this prescription.</div>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        "<div style='background:#FFFFF0; border:2px solid #000; border-top:none; "
+        "padding:10px 16px 14px; text-align:right; margin-bottom:10px;'>"
+        "<span style='display:inline-block; border:3px solid #CC0000; color:#CC0000; "
+        "font-size:14px; font-weight:700; padding:3px 12px; letter-spacing:2px;'>"
+        "DR. APPROVED</span></div>",
+        unsafe_allow_html=True
+    )
+
+    # Disclaimer
+    st.markdown(
+        "<div style='background:#FFFFF0; border:2px inset #888; padding:14px 16px; "
+        "margin:0 0 10px; font-size:11px; color:#555;'>"
+        "<strong>DISCLAIMER:</strong> This diagnosis is certified by the International Board of "
+        "People Who Just Need a Minute. Results valid for 7 days or until someone invites you "
+        "to something, whichever comes first. The doctor is not responsible for any plans you "
+        "cancel as a result of this report. That was going to happen anyway."
+        "<br><br>"
+        "<div style='text-align:center; font-size:12px; color:#333;'>"
+        "RATE THIS DIAGNOSIS: &nbsp;[Excellent]&nbsp; [Very Good]&nbsp; [Good]&nbsp; [Why Did I Come Here]"
+        "</div></div>",
+        unsafe_allow_html=True
+    )
 
 # ── Footer ────────────────────────────────────────────────────────────────────
 st.markdown("""
