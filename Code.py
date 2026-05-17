@@ -4,11 +4,17 @@ import random
 st.set_page_config(page_title="Social Battery Diagnostic Center", page_icon="🩺", layout="centered")
 
 # ── Random jump scare on load ─────────────────────────────────────────────────
-if "jump_scare_done" not in st.session_state:
-    st.session_state.jump_scare_done = False
-if not st.session_state.jump_scare_done and random.random() < 0.3:
-    st.session_state.jump_scare_done = True
-    st.error("⚠ WARNING: A wild extrovert has been detected in your vicinity. Stay calm. Do not make eye contact. This message will not repeat. (It might repeat.)")
+if "jump_scare_roll" not in st.session_state:
+    st.session_state.jump_scare_roll = random.random()
+if st.session_state.jump_scare_roll < 0.4:
+    SCARES = [
+        "⚠ WARNING: A wild extrovert has been detected in your vicinity. Stay calm. Do not make eye contact. This message will not repeat. (It might repeat.)",
+        "⚠ ALERT: Someone nearby just said 'we should hang out sometime' and meant it. Brace yourself.",
+        "⚠ CAUTION: An unread group chat notification is approaching. The doctor recommends looking away.",
+        "⚠ NOTICE: Someone just replied 'K' to your paragraph. The doctor is aware. The doctor is also angry.",
+    ]
+    scare_idx = int(st.session_state.jump_scare_roll * 10) % len(SCARES)
+    st.error(SCARES[scare_idx])
 
 st.markdown("""
 <style>
@@ -106,6 +112,38 @@ div[data-testid="stMarkdownContainer"] span[style*="background:#000"] { color: #
 .blink { animation: blinker 1s step-start infinite; }
 @keyframes blinker { 50% { opacity: 0; } }
 
+/* CSS ticker tape — replaces marquee */
+.ticker-text {
+    display: inline-block;
+    white-space: nowrap;
+    color: #FFFF00;
+    font-size: 13px;
+    font-family: 'Courier Prime', monospace;
+    font-weight: 700;
+    animation: ticker 32s linear infinite;
+}
+@keyframes ticker {
+    0%   { transform: translateX(900px); }
+    100% { transform: translateX(-2000px); }
+}
+
+/* Under construction stripe */
+.under-construction {
+    background: repeating-linear-gradient(
+        45deg, #FFD700, #FFD700 10px, #000 10px, #000 20px
+    );
+    color: #FFD700;
+    font-weight: 700;
+    font-size: 12px;
+    text-align: center;
+    padding: 5px;
+    letter-spacing: 2px;
+    border-top: 2px solid #888;
+    border-bottom: 2px solid #888;
+    animation: blinker 1.2s step-start infinite;
+    font-family: 'Courier Prime', monospace;
+}
+
 .odometer {
     font-family: 'Courier Prime', monospace;
     background: #000;
@@ -144,17 +182,18 @@ st.markdown("""
     </span>
 </div>
 
-<marquee behavior='scroll' direction='left'
-    style='background:#000080; color:#FFFF00; font-size:13px; padding:5px 0;
-           font-family:Courier Prime,monospace; font-weight:700; border-bottom:2px solid #333;'>
-    *** WARNING: LOW BATTERY EMERGENCIES SHOULD REPORT TO THE NEAREST BEDROOM ***
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    *** IMPORTANT: This diagnostic tool is certified by the International Board of People Who Are Tired ***
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    *** NEW: Now accepting walk-ins (please do not walk in) ***
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    *** REMINDER: Eye contact with this website is discouraged ***
-</marquee>
+<div style='background:#000080; overflow:hidden; padding:6px 0; border-bottom:2px solid #333;'>
+    <div class='ticker-text'>
+        *** WARNING: LOW BATTERY EMERGENCIES SHOULD REPORT TO THE NEAREST BEDROOM ***
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        *** IMPORTANT: Certified by the International Board of People Who Are Tired ***
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        *** NEW: Now accepting walk-ins (please do not walk in) ***
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        *** REMINDER: Eye contact with this website is strongly discouraged ***
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </div>
+</div>
 
 <div style='background:#FFFFF0; border:2px inset #888; padding:14px 16px; margin:10px 0; font-size:13px;'>
     <div style='background:#000080; color:white; padding:3px 8px; font-size:13px;
@@ -174,11 +213,31 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<div class='under-construction'>
+    🚧 &nbsp; THIS PAGE IS UNDER CONSTRUCTION &nbsp; 🚧 &nbsp;
+    PLEASE CHECK BACK IN 1998 &nbsp; 🚧
+</div>
+""", unsafe_allow_html=True)
+
 # ═══════════════════════════════════════════════════════════════════════════════
 #  FORM
 # ═══════════════════════════════════════════════════════════════════════════════
-st.markdown("<div style='background:#000080; color:white; padding:3px 8px; font-size:13px; font-weight:700; letter-spacing:1px; margin-bottom:8px;'>▶ SECTION 1 — PATIENT INTAKE FORM</div>", unsafe_allow_html=True)
+st.markdown("<div style='background:#000080; color:white; padding:3px 8px; font-size:13px; font-weight:700; letter-spacing:1px; margin-bottom:8px; margin-top:10px;'>▶ SECTION 1 — PATIENT INTAKE FORM</div>", unsafe_allow_html=True)
 name = st.text_input("Patient Name (first name only, we don't need more)", placeholder="e.g. Dave")
+
+# Name validation — penalise full names
+name_penalty = 0
+name_warning = ""
+if name.strip():
+    if " " in name.strip():
+        name_warning = "⚠ We said first name only. We are deducting 5% for making us read two names. The doctor is sighing."
+        name_penalty = -5
+    elif len(name.strip()) > 12:
+        name_warning = "⚠ That is a very long name. The doctor had to stand up to read it. Deducting 3% for the inconvenience."
+        name_penalty = -3
+if name_warning:
+    st.markdown(f"<div style='background:#FFFDE0; border:2px inset #888800; padding:8px 12px; font-size:12px; color:#1a1a1a;'>{name_warning}</div>", unsafe_allow_html=True)
 
 st.markdown("<div style='background:#000080; color:white; padding:3px 8px; font-size:13px; font-weight:700; letter-spacing:1px; margin:12px 0 8px;'>▶ SECTION 2 — SOCIAL ACTIVITY LOG (past 7 days)</div>", unsafe_allow_html=True)
 st.markdown("<div style='background:#FFFFF0; border:2px inset #888; padding:10px 16px; margin:0 0 6px; font-size:13px;'><strong>Please check all that apply:</strong></div>", unsafe_allow_html=True)
@@ -342,7 +401,8 @@ RESULT_COLORS = {
 def compute_battery(had_party, had_wedding, had_family, had_work_calls, had_smalltalk,
                     had_waiter, had_wave, had_date, had_networking, had_phonecall,
                     had_relative, had_lie, had_cancelled, had_ghosted, had_cancelled_on,
-                    had_alone_time, people_count, awkward_moments, worst_event, recharge):
+                    had_alone_time, people_count, awkward_moments, worst_event, recharge,
+                    name_penalty=0):
     score = 60
     if had_party:        score -= 18
     if had_wedding:      score -= 22
@@ -372,6 +432,7 @@ def compute_battery(had_party, had_wedding, had_family, had_work_calls, had_smal
     elif "stayed home" in worst_event:   score += 10
     if "floor" in recharge or "surviving" in recharge: score += 5
     else: score += 8
+    score += name_penalty
     score = max(2, min(99, int(score)))
     if score <= 10:   tier = "critical"
     elif score <= 35: tier = "low"
@@ -398,7 +459,8 @@ if submit:
             had_party, had_wedding, had_family, had_work_calls, had_smalltalk,
             had_waiter, had_wave, had_date, had_networking, had_phonecall,
             had_relative, had_lie, had_cancelled, had_ghosted, had_cancelled_on,
-            had_alone_time, people_count, awkward_moments, worst_event, recharge
+            had_alone_time, people_count, awkward_moments, worst_event, recharge,
+            name_penalty
         )
         rx1, rx1_note = random.choice(PRESCRIPTIONS)
         rx2, rx2_note = random.choice([p for p in PRESCRIPTIONS if p[0] != rx1])
