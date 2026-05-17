@@ -119,13 +119,37 @@ div[data-testid="stMarkdownContainer"] em {
     color: #1a1a1a !important;
     font-family: 'Courier Prime', monospace !important;
 }
-/* Keep white text on dark/coloured bar fills */
-div[data-testid="stMarkdownContainer"] div[style*="background:#000080"] { color: white !important; }
-div[data-testid="stMarkdownContainer"] div[style*="background:#CC0000"] { color: white !important; }
-div[data-testid="stMarkdownContainer"] div[style*="background:#006600"] { color: white !important; }
-div[data-testid="stMarkdownContainer"] div[style*="background:#CC6600"] { color: white !important; }
-div[data-testid="stMarkdownContainer"] div[style*="background:#AAAA00"] { color: white !important; }
-div[data-testid="stMarkdownContainer"] div[style*="background:#004488"] { color: white !important; }
+/* Keep white/light text on dark backgrounds */
+div[data-testid="stMarkdownContainer"] div[style*="background:#000080"],
+div[data-testid="stMarkdownContainer"] div[style*="background:#000080"] div,
+div[data-testid="stMarkdownContainer"] div[style*="background:#000080"] span,
+div[data-testid="stMarkdownContainer"] div[style*="background:#000080"] a { color: white !important; }
+
+div[data-testid="stMarkdownContainer"] div[style*="background:#C0C0C0"],
+div[data-testid="stMarkdownContainer"] div[style*="background:#C0C0C0"] a { color: #000080 !important; }
+
+div[data-testid="stMarkdownContainer"] div[style*="background:#CC0000"],
+div[data-testid="stMarkdownContainer"] div[style*="background:#CC0000"] span { color: white !important; }
+
+div[data-testid="stMarkdownContainer"] div[style*="background:#006600"],
+div[data-testid="stMarkdownContainer"] div[style*="background:#006600"] span { color: white !important; }
+
+div[data-testid="stMarkdownContainer"] div[style*="background:#CC6600"],
+div[data-testid="stMarkdownContainer"] div[style*="background:#CC6600"] span { color: white !important; }
+
+div[data-testid="stMarkdownContainer"] div[style*="background:#AAAA00"],
+div[data-testid="stMarkdownContainer"] div[style*="background:#AAAA00"] span { color: white !important; }
+
+div[data-testid="stMarkdownContainer"] div[style*="background:#004488"],
+div[data-testid="stMarkdownContainer"] div[style*="background:#004488"] span { color: white !important; }
+
+/* Yellow marquee text */
+div[data-testid="stMarkdownContainer"] div[style*="color:#FFFF00"] { color: #FFFF00 !important; }
+/* Blueish subtitle in header */
+div[data-testid="stMarkdownContainer"] div[style*="color:#AAAAFF"],
+div[data-testid="stMarkdownContainer"] div[style*="color:#AAAAFF"] span { color: #AAAAFF !important; }
+/* Green visitor counter */
+div[data-testid="stMarkdownContainer"] span[style*="background:#000"] { color: #00FF00 !important; }
 
 .blink {
     animation: blinker 1s step-start infinite;
