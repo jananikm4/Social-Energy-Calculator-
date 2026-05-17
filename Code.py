@@ -110,6 +110,23 @@ div[data-testid="stSelectbox"] label p {
     color: #1a1a1a !important;
 }
 
+/* Force ALL text inside markdown HTML to visible black */
+div[data-testid="stMarkdownContainer"] div,
+div[data-testid="stMarkdownContainer"] span:not([style*="color:#CC0000"]),
+div[data-testid="stMarkdownContainer"] p,
+div[data-testid="stMarkdownContainer"] strong,
+div[data-testid="stMarkdownContainer"] em {
+    color: #1a1a1a !important;
+    font-family: 'Courier Prime', monospace !important;
+}
+/* Keep white text on dark/coloured bar fills */
+div[data-testid="stMarkdownContainer"] div[style*="background:#000080"] { color: white !important; }
+div[data-testid="stMarkdownContainer"] div[style*="background:#CC0000"] { color: white !important; }
+div[data-testid="stMarkdownContainer"] div[style*="background:#006600"] { color: white !important; }
+div[data-testid="stMarkdownContainer"] div[style*="background:#CC6600"] { color: white !important; }
+div[data-testid="stMarkdownContainer"] div[style*="background:#AAAA00"] { color: white !important; }
+div[data-testid="stMarkdownContainer"] div[style*="background:#004488"] { color: white !important; }
+
 .blink {
     animation: blinker 1s step-start infinite;
 }
